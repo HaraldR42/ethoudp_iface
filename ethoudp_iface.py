@@ -68,13 +68,17 @@ MAX_FRAME_SIZE = 1522
 
 class NetworkStatistics:
     def __init__(self):
+        self.sent_frames             = 0
+        self.sent_bytes              = 0
         self.error_wrong_length      = 0
         self.error_wrong_ethertype   = 0
         self.error_vmmac_ip_mismatch = 0
         self.error_illegal_dest_mac  = 0
 
     def __str__(self) -> str:
-        return (f'wrong_length={self.error_wrong_length}  '
+        return (f'sent_frames={self.sent_frames}  '
+                f'sent_bytes={self.sent_bytes}  '
+                f'wrong_length={self.error_wrong_length}  '
                 f'wrong_ethertype={self.error_wrong_ethertype}  '
                 f'vmmac_ip_mismatch={self.error_vmmac_ip_mismatch}  '
                 f'illegal_dest_mac={self.error_illegal_dest_mac}')
@@ -157,12 +161,9 @@ class TapDevice(BridgeDevice):
         self._evt_loop.add_reader(self._fd, self._data_available)
 
     def write_from(self, buffer: bytes | bytearray, length: int) -> None:
-        try:
-            os.write(self._fd, memoryview(buffer)[:length])
-        except OSError as err:
-            if err.errno != errno.EIO:
-                raise
-            logging.error('Unable to write to TAP device. Is interface up?')
+        os.write(self._fd, memoryview(buffer)[:length])
+        self.stats.sent_frames += 1
+        self.stats.sent_bytes += length
 
     def close(self) -> None:
         self._evt_loop.remove_reader(self._fd)
@@ -193,9 +194,13 @@ class NetworkSockets(BridgeDevice):
 
     def send_broadcast(self, buffer: bytes | bytearray, length: int) -> None:
         self._bcast_sock.sendto(memoryview(buffer)[:length], ('<broadcast>', self._port))
+        self.stats.sent_frames += 1
+        self.stats.sent_bytes += length
 
     def send_unicast(self, address: str, buffer: bytes | bytearray, length: int) -> None:
         self._ucast_sock.sendto(memoryview(buffer)[:length], (address, self._port))
+        self.stats.sent_frames += 1
+        self.stats.sent_bytes += length
 
     def close(self) -> None:
         for sock in (self._ucast_sock, self._bcast_sock):
@@ -368,6 +373,7 @@ def main() -> int:
 
     try:
         evt_loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(evt_loop)
 
         bridge = NetworkBridge(config.tap_iface, config.bcast_iface, config.bcast_port, config.bridge_ipv4, config.bridge_appletalk, evt_loop)
         logging.info('TAP setup: Iface: %s  IPv4: %s/%s  MAC: %s', 
