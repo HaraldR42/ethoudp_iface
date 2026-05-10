@@ -1,6 +1,10 @@
-# EthernetOverUDP_iface
-#
-# ethernet_frame.py
+"""
+ethoudp_iface: Ethernet over UDP interface for SheepShaver/Basilisk II
+======================================================================
+
+(c) 2026 by Harald Roelle
+"""
+
 # Ethernet frame types and frame parser for logging and debugging purposes.
 # EthernetFrameAnalyzer is not used in the forwarding path — parsing overhead
 # is only acceptable for debug output.

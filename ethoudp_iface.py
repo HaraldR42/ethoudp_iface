@@ -1,31 +1,27 @@
 #!/usr/bin/env python3
 """
-ethoudp_iface: Ethernet over UDP interface
-==========================================
+ethoudp_iface: Ethernet over UDP interface for SheepShaver/Basilisk II
+======================================================================
+
+(c) 2026 by Harald Roelle
+
 Based on sheep_bridge by VinDuv.
-Creates an interface for Basilisk II / SheepShaver UDP tunnel to a Linux TAP device.
+Creates an interface for SheepShaver/Basilisk II  UDP tunnel to a Linux TAP device.
 
 IMPORTANT: This is not a generic L2 bridge
 Basilisk II is hardcoded to only send unicast frames to 42:32:xx:xx:xx MACs — meaning it can only talk 
-directly to other Basilisk II/SheepShaver instances or to our interface (which has a 42:32 MAC). 
+directly to other SheepShaver/Basilisk II instances or to our interface (which has a 42:32 MAC). 
 Any other host on the network is unreachable to it at the Ethernet level.
 
 Do not attach ethoudp_tap to a Linux bridge, it never works — the other hosts on it have normal MACs 
-that Basilisk II would never send to. So the 42:32 convention isn't just a clever trick for IP extraction — 
-it's actually a hard requirement imposed by Basilisk II's networking code.
+that SheepShaver/Basilisk II would never send to. So the 42:32 convention isn't just a clever trick for IP extraction — 
+it's actually a hard requirement imposed by SheepShaver/Basilisk II's networking code.
 
 Instead, use the TAP interface in a router, either for IPv4 (e.g. by the Linux kernel) and 
 EtherTalk (e.g. by atalkd from netatalk).
 
-That is the reason why this project is called EthernetOverUdp_iface, not _bridge!
+That is the reason why this project is called ethoudp_iface, not _bridge!
 
-Extensions over the original:
-    - Massively refactored code structure
-    - Bugfixes
-    - EtherType filtering (--no-bridge-ipv4, --no-bridge-appletalk)
-    - Signal handling (SIGHUP, SIGINT, SIGTERM) for clean shutdown
-    - Carrier on for the TAP interface
-    - Performance improvements (e.g. using memoryview for zero-copy UDP socket writes, pre-computing masked MAC values for efficient matching in MacAddressFilter)
 """
 
 import argparse

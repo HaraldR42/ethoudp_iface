@@ -1,4 +1,10 @@
-# mac_address_filter.py
+"""
+ethoudp_iface: Ethernet over UDP interface for SheepShaver/Basilisk II
+======================================================================
+
+(c) 2026 by Harald Roelle
+"""
+
 # Bitmask-based MAC address matching for use in the Ethernet forwarding path.
 # Each entry is a (mac, mask) pair; only bits set in the mask are compared,
 # allowing prefix and wildcard matches without per-packet string slicing.
