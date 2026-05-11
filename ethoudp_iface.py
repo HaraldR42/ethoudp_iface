@@ -318,6 +318,14 @@ class NetworkBridge():
 
 
 def main() -> int:
+    def _env_bool(name: str, default: bool) -> bool:
+        val = os.environ.get(name, '').lower()
+        if val in ('1', 'true', 'yes'):
+            return True
+        if val in ('0', 'false', 'no'):
+            return False
+        return default
+
     def _request_stop(sig: int) -> None:
         logging.info('Received %s — shutting down', signal.Signals(sig).name)
         stop.set()
@@ -337,22 +345,32 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description='ethoudp_iface: Linux Ethernet over UDP interface for Basilisk II / SheepShaver'
     )
-    parser.add_argument('--tap-iface', type=str, default='ethoudp_tap', help='TAP interface name')
-    parser.add_argument('--bcast-iface', type=str, default='eth0', help='Network interface to derive IP/mask from (default: eth0)')
-    parser.add_argument('--bcast-port', type=int, default=6066, help="UDP port matching Basilisk II 'udpport' pref")
+    parser.add_argument('--tap-iface', type=str,
+                        default=os.environ.get('TAP_IFACE', 'ethoudp_tap'),
+                        help='TAP interface name (env: TAP_IFACE)')
+    parser.add_argument('--bcast-iface', type=str,
+                        default=os.environ.get('BCAST_IFACE', 'eth0'),
+                        help='Network interface to derive IP/mask from (env: BCAST_IFACE)')
+    parser.add_argument('--bcast-port', type=int,
+                        default=int(os.environ.get('BCAST_PORT', '6066')),
+                        help="UDP port matching Basilisk II 'udpport' pref (env: BCAST_PORT)")
     parser.add_argument('--no-bridge-ipv4', dest='bridge_ipv4',
-                        action='store_false', default=True,
-                        help='Disable IPv4/ARP bridging')
+                        action='store_false', default=_env_bool('BRIDGE_IPV4', True),
+                        help='Disable IPv4/ARP bridging (env: BRIDGE_IPV4=0/1)')
     parser.add_argument('--no-bridge-appletalk', dest='bridge_appletalk',
-                        action='store_false', default=True,
-                        help='Disable AppleTalk/AARP bridging')
-    parser.add_argument('--log-level', default='INFO',
+                        action='store_false', default=_env_bool('BRIDGE_APPLETALK', True),
+                        help='Disable AppleTalk/AARP bridging (env: BRIDGE_APPLETALK=0/1)')
+    parser.add_argument('--log-level',
+                        default=os.environ.get('LOG_LEVEL', 'INFO'),
                         choices=['DEBUG', 'INFO', 'WARNING', 'ERROR'],
-                        help='Set the logging level (default: INFO)')
-    parser.add_argument('--statistics', action='store_true', default=False,
-                        help='Periodically log error statistics for TAP and Bcast devices')
-    parser.add_argument('--stats-interval', type=int, default=60, metavar='SECONDS',
-                        help='Statistics logging interval in seconds (default: 60)')
+                        help='Set the logging level (env: LOG_LEVEL)')
+    parser.add_argument('--statistics', action='store_true',
+                        default=_env_bool('STATISTICS', False),
+                        help='Periodically log error statistics for TAP and Bcast devices (env: STATISTICS=0/1)')
+    parser.add_argument('--stats-interval', type=int,
+                        default=int(os.environ.get('STATS_INTERVAL', '60')),
+                        metavar='SECONDS',
+                        help='Statistics logging interval in seconds (env: STATS_INTERVAL)')
     config = parser.parse_args()
 
     logging.basicConfig(
