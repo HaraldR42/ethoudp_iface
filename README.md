@@ -62,7 +62,7 @@ ethoudp_iface expects two network interfaces to be present:
 1) Broadcast traffic interface: Here your host running the emulator lives. *Must have an IP address before starting ethoudp_iface.*
 2) ethoudp tap interface: This is the interface where the vintage Macs' traffic is made available. *Must have an IP address in the range used by the vintage Macs.*
 
-See XXX for an example on how to configure especially the tap interface.
+See [vmacsrv project](https://github.com/HaraldR42/vmacsrv/tree/main) for an example on how to configure especially the tap interface.
 
 ## Usage
 
